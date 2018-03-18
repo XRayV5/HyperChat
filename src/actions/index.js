@@ -1,8 +1,8 @@
 import { requestLogin, requestSignup } from "../api";
 import chat from "./socket";
-const handleAuth = api => (state, actions) => {
+const handleAuth = (api, flag) => (state, actions) => {
   console.log("state ", state, "actions ", actions);
-  return api(actions.login.getCredentials())
+  return api(actions[flag].getCredentials())
     .then(data => {
       console.log("token", data.token);
       sessionStorage.setItem("token", data.token);
@@ -43,13 +43,15 @@ const signup = {
   ...commons
 };
 
-export default {
+const actions = {
   login,
   signup,
-  handleLogin: handleAuth.bind(null, requestLogin),
-  handleSignup: handleAuth.bind(null, requestSignup),
+  handleLogin: handleAuth.bind(null, requestLogin, "login"),
+  handleSignup: handleAuth.bind(null, requestSignup, "signup"),
   handleLogout,
   flagAuth,
   reAuthUser,
   chat
 };
+
+export default actions;
