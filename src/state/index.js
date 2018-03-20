@@ -10,7 +10,7 @@ const signup = {
 
 const appStatus = {
   authenticated: false,
-  loginProfile: {}
+  username: ""
 };
 
 const chat = {

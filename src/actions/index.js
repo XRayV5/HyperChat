@@ -1,23 +1,31 @@
 import { requestLogin, requestSignup } from "../api";
 import chat from "./socket";
 const handleAuth = (api, flag) => (state, actions) => {
-  console.log("state ", state, "actions ", actions);
   return api(actions[flag].getCredentials())
+    .then(data => {
+      return data;
+    })
     .then(data => {
       console.log("token", data.token);
       sessionStorage.setItem("token", data.token);
       actions.flagAuth(true);
-      actions.chat.connect();
+      actions.setUsername(data.email);
+      actions.chat.connect(data);
       actions.location.go("/");
     })
     .catch(console.error);
 };
 
-const flagAuth = authenticated => ({ appStatus: { authenticated } });
+const flagAuth = authenticated => ({ appStatus }, actions) => ({
+  appStatus: { ...appStatus, authenticated }
+});
+
+const setUsername = username => ({ appStatus, actions }) => ({
+  appStatus: { ...appStatus, username }
+});
 
 const handleLogout = () => (state, actions) => {
   sessionStorage.removeItem("token");
-  console.log("dis ", state.chat.socket);
   state.chat.socket.disconnect();
   actions.flagAuth(false);
 };
@@ -51,6 +59,7 @@ const actions = {
   handleLogout,
   flagAuth,
   reAuthUser,
+  setUsername,
   chat
 };
 
