@@ -1,5 +1,7 @@
 import { requestLogin, requestSignup } from "../api";
-import chat from "./socket";
+import socketActions from "./socket";
+import * as chat from "./chat";
+
 const handleAuth = (api, flag) => (state, actions) => {
   return api(actions[flag].getCredentials())
     .then(data => {
@@ -9,8 +11,8 @@ const handleAuth = (api, flag) => (state, actions) => {
       console.log("token", data.token);
       sessionStorage.setItem("token", data.token);
       actions.flagAuth(true);
-      actions.setUsername(data.email);
-      actions.chat.connect(data);
+      // actions.setUsername(data.email);
+      actions.connect();
       actions.location.go("/");
     })
     .catch(console.error);
@@ -20,7 +22,7 @@ const flagAuth = authenticated => ({ appStatus }, actions) => ({
   appStatus: { ...appStatus, authenticated }
 });
 
-const setUsername = username => ({ appStatus, actions }) => ({
+const setUsername = username => ({ appStatus }, actions) => ({
   appStatus: { ...appStatus, username }
 });
 
@@ -32,7 +34,10 @@ const handleLogout = () => (state, actions) => {
 
 const reAuthUser = () => (state, actions) => {
   const token = sessionStorage.getItem("token");
-  if (token) actions.flagAuth(true);
+  if (token) {
+    actions.flagAuth(true);
+    actions.connect();
+  }
 };
 
 const commons = {
@@ -60,6 +65,7 @@ const actions = {
   flagAuth,
   reAuthUser,
   setUsername,
+  ...socketActions,
   chat
 };
 

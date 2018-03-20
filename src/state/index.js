@@ -14,7 +14,10 @@ const appStatus = {
 };
 
 const chat = {
-  socket: null
+  socket: null,
+  draft: "",
+  userList: [],
+  messageLog: []
 };
 
 const state = {

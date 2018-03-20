@@ -4,6 +4,7 @@ import uglify from "rollup-plugin-uglify";
 import babel from "rollup-plugin-babel";
 import json from "rollup-plugin-json";
 import globals from "rollup-plugin-node-globals";
+import css from "rollup-plugin-css-porter";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -15,6 +16,7 @@ export default {
     sourcemap: true
   },
   plugins: [
+    css({ dest: "public/bundle.css" }),
     resolve({
       jsnext: true,
       main: true,

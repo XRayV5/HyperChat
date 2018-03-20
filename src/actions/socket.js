@@ -2,9 +2,9 @@ import sio from "socket.io-client";
 
 const baseURL = "http://localhost:3090/";
 
-const connect = userdata => (state, actions) => {
+const connect = () => (state, actions) => {
   const socket = sio.connect(baseURL, {
-    query: `token=${userdata.token}`
+    query: `token=${sessionStorage.getItem("token")}`
   });
   /**
     Observes all incoming server-side events,
@@ -14,13 +14,36 @@ const connect = userdata => (state, actions) => {
     .on("connect", () => {
       console.log("Socket Connected.");
       actions.setSocket(socket);
-      socket.emit("enter chat", { username: userdata.email });
+      socket.emit("enter chat");
+    })
+    .on("registered", username => {
+      actions.setUsername(username);
+    })
+    .on("update message log", messageLog => {
+      console.log("received message log", messageLog);
+      actions.chat.updateMessageLog(messageLog);
+    })
+    .on("new user joined", userList => {
+      actions.updateUserList(userList);
+    })
+    .on("user left", userList => {
+      actions.updateUserList(userList);
+    })
+    .on("new message", newMessage => {
+      console.log("new message received", newMessage);
+      actions.chat.pushToMessageLog(newMessage);
     })
     .on("disconnect", () => {
       console.log("Socket Disconnected.");
     });
 };
 
-const setSocket = socket => ({ socket });
+const setSocket = socket => (state, actions) => ({
+  chat: { ...state.chat, socket }
+});
 
-export default { connect, setSocket };
+const updateUserList = newList => (state, actions) => ({
+  chat: { ...state.chat, userList: newList }
+});
+
+export default { connect, setSocket, updateUserList };

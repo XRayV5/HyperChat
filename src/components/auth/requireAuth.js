@@ -6,7 +6,7 @@ const requireAuth = (
   redir
 ) => {
   if (!state.appStatus.authenticated) actions.location.go(redir || "/login");
-  return h(composedComp, { ...actions }, { ...state });
+  return h(composedComp, { actions, state });
 };
 
 export default requireAuth;

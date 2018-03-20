@@ -527,8 +527,6 @@
     );
   };
 
-  var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
   var requireAuth = function requireAuth(_ref, composedComp, redir) {
     var location = _ref.location,
         match = _ref.match,
@@ -536,25 +534,72 @@
         state = _ref.state;
 
     if (!state.appStatus.authenticated) actions.location.go(redir || "/login");
-    return h(composedComp, _extends({}, actions), _extends({}, state));
+    return h(composedComp, { actions: actions, state: state });
   };
 
   var MainView = function MainView(props) {
+    console.log(props);
     return h(
       "div",
-      null,
+      { className: "container" },
       h(
-        "div",
+        "header",
         null,
-        "Main Window"
+        h(
+          "div",
+          null,
+          "ChatIO"
+        ),
+        h(
+          "div",
+          { className: "user-box" },
+          h(
+            "div",
+            { className: "user" },
+            props.state.appStatus.username
+          ),
+          h(
+            "button",
+            { className: "logout-btn", onclick: props.actions.handleLogout },
+            "logout"
+          )
+        )
       ),
       h(
         "div",
+        { id: "main" },
+        h(
+          "article",
+          null,
+          "article"
+        ),
+        h(
+          "nav",
+          null,
+          props.state.chat.userList.map(function (user) {
+            return h(
+              "div",
+              null,
+              user
+            );
+          })
+        )
+      ),
+      h(
+        "footer",
         null,
+        h("textarea", {
+          className: "input-area",
+          rows: 5,
+          value: props.state.chat.draft,
+          oninput: function oninput(e) {
+            return props.actions.chat.handleEnter(e.target.value);
+          }
+        }),
         h(
           "button",
-          { onclick: props.handleLogout },
-          "logout"
+          { className: "send-btn", onclick: props.actions.chat.sendMessage },
+          "Send"
         )
       )
     );
@@ -617,11 +662,11 @@
     );
   };
 
-  var _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+  var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
   var withRouter = function withRouter(actions, state, App, container) {
-    var extendedActions = _extends$1({}, actions, { location: location$1.actions });
-    var extendedState = _extends$1({}, state, { location: location$1.state });
+    var extendedActions = _extends({}, actions, { location: location$1.actions });
+    var extendedState = _extends({}, state, { location: location$1.state });
     var AppWithRouter = app(extendedState, extendedActions, App, container);
     location$1.subscribe(AppWithRouter.location);
     return AppWithRouter;
@@ -639,11 +684,14 @@
 
   var appStatus = {
     authenticated: false,
-    loginProfile: {}
+    username: ""
   };
 
   var chat = {
-    socket: null
+    socket: null,
+    draft: "",
+    userList: [],
+    messageLog: []
   };
 
   var state = {
@@ -9159,6 +9207,8 @@
   var lib_4 = lib$1.Manager;
   var lib_5 = lib$1.Socket;
 
+  var _extends$1 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
   var baseURL = "http://localhost:3090/";
 
   var connect = function connect() {
@@ -9173,6 +9223,19 @@
       socket.on("connect", function () {
         console.log("Socket Connected.");
         actions.setSocket(socket);
+        socket.emit("enter chat");
+      }).on("registered", function (username) {
+        actions.setUsername(username);
+      }).on("update message log", function (messageLog) {
+        console.log("received message log", messageLog);
+        actions.chat.updateMessageLog(messageLog);
+      }).on("new user joined", function (userList) {
+        actions.updateUserList(userList);
+      }).on("user left", function (userList) {
+        actions.updateUserList(userList);
+      }).on("new message", function (newMessage) {
+        console.log("new message received", newMessage);
+        actions.chat.pushToMessageLog(newMessage);
       }).on("disconnect", function () {
         console.log("Socket Disconnected.");
       });
@@ -9180,33 +9243,95 @@
   };
 
   var setSocket = function setSocket(socket) {
-    return { socket: socket };
+    return function (state, actions) {
+      return {
+        chat: _extends$1({}, state.chat, { socket: socket })
+      };
+    };
   };
 
-  var chat$1 = { connect: connect, setSocket: setSocket };
+  var updateUserList = function updateUserList(newList) {
+    return function (state, actions) {
+      return {
+        chat: _extends$1({}, state.chat, { userList: newList })
+      };
+    };
+  };
+
+  var socketActions = { connect: connect, setSocket: setSocket, updateUserList: updateUserList };
+
+  function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+  var handleEnter = function handleEnter(text) {
+    return { draft: text };
+  };
+
+  var sendMessage = function sendMessage() {
+    return function (state, actions) {
+      state.socket.emit("new message", state.draft);
+    };
+  };
+
+  var updateMessageLog = function updateMessageLog(newMessageLog) {
+    return {
+      messageLog: newMessageLog
+    };
+  };
+
+  var pushToMessageLog = function pushToMessageLog(newMessage) {
+    return function (_ref, actions) {
+      var messageLog = _ref.messageLog;
+      return {
+        messageLog: [].concat(_toConsumableArray(messageLog), [newMessage])
+      };
+    };
+  };
+
+  var chat$1 = /*#__PURE__*/Object.freeze({
+    handleEnter: handleEnter,
+    sendMessage: sendMessage,
+    updateMessageLog: updateMessageLog,
+    pushToMessageLog: pushToMessageLog
+  });
 
   var _extends$2 = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-  var handleAuth = function handleAuth(api) {
+
+  var handleAuth = function handleAuth(api, flag) {
     return function (state, actions) {
-      console.log("state ", state, "actions ", actions);
-      return api(actions.login.getCredentials()).then(function (data) {
+      return api(actions[flag].getCredentials()).then(function (data) {
+        return data;
+      }).then(function (data) {
         console.log("token", data.token);
         sessionStorage.setItem("token", data.token);
         actions.flagAuth(true);
-        actions.chat.connect();
+        // actions.setUsername(data.email);
+        actions.connect();
         actions.location.go("/");
       }).catch(console.error);
     };
   };
 
   var flagAuth = function flagAuth(authenticated) {
-    return { appStatus: { authenticated: authenticated } };
+    return function (_ref, actions) {
+      var appStatus = _ref.appStatus;
+      return {
+        appStatus: _extends$2({}, appStatus, { authenticated: authenticated })
+      };
+    };
+  };
+
+  var setUsername = function setUsername(username) {
+    return function (_ref2, actions) {
+      var appStatus = _ref2.appStatus;
+      return {
+        appStatus: _extends$2({}, appStatus, { username: username })
+      };
+    };
   };
 
   var handleLogout = function handleLogout() {
     return function (state, actions) {
       sessionStorage.removeItem("token");
-      console.log("dis ", state.chat.socket);
       state.chat.socket.disconnect();
       actions.flagAuth(false);
     };
@@ -9215,7 +9340,10 @@
   var reAuthUser = function reAuthUser() {
     return function (state, actions) {
       var token = sessionStorage.getItem("token");
-      if (token) actions.flagAuth(true);
+      if (token) {
+        actions.flagAuth(true);
+        actions.connect();
+      }
     };
   };
 
@@ -9229,9 +9357,9 @@
       };
     },
     getCredentials: function getCredentials() {
-      return function (_ref) {
-        var email = _ref.email,
-            password = _ref.password;
+      return function (_ref3) {
+        var email = _ref3.email,
+            password = _ref3.password;
         return { email: email, password: password };
       };
     }
@@ -9241,16 +9369,18 @@
 
   var signup$1 = _extends$2({}, commons);
 
-  var actions = {
+  var actions = _extends$2({
     login: login$1,
     signup: signup$1,
-    handleLogin: handleAuth.bind(null, requestLogin),
-    handleSignup: handleAuth.bind(null, requestSignup),
+    handleLogin: handleAuth.bind(null, requestLogin, "login"),
+    handleSignup: handleAuth.bind(null, requestSignup, "signup"),
     handleLogout: handleLogout,
     flagAuth: flagAuth,
     reAuthUser: reAuthUser,
+    setUsername: setUsername
+  }, socketActions, {
     chat: chat$1
-  };
+  });
 
   var appInstance = withRouter(actions, state, App, document.querySelector("#v-dom-entry"));
   appInstance.reAuthUser();
