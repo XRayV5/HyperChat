@@ -21,7 +21,6 @@ function updateScroll() {
 }
 
 const MainView = props => {
-  console.log(props);
   return (
     <div className="container">
       <header>
@@ -52,6 +51,21 @@ const MainView = props => {
           rows={5}
           value={props.state.chat.draft}
           oninput={e => props.actions.chat.handleEnter(e.target.value)}
+          oncreate={e => {
+            let newline = false;
+            e.addEventListener("keypress", e => {
+              if (e.keyCode === 13 && !newline) {
+                e.preventDefault();
+                props.actions.chat.sendMessage();
+              }
+            });
+            e.addEventListener("keydown", e => {
+              if (e.keyCode === 16) newline = true;
+            });
+            e.addEventListener("keyup", e => {
+              if (e.keyCode === 16) newline = false;
+            });
+          }}
         />
         <button className="send-btn" onclick={props.actions.chat.sendMessage}>
           Send

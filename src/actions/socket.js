@@ -20,7 +20,6 @@ const connect = () => (state, actions) => {
       actions.setUsername(username);
     })
     .on("update message log", messageLog => {
-      console.log("received message log", messageLog);
       actions.chat.updateMessageLog(messageLog);
     })
     .on("new user joined", userList => {
@@ -30,7 +29,6 @@ const connect = () => (state, actions) => {
       actions.updateUserList(userList);
     })
     .on("new message", newMessage => {
-      console.log("new message received", newMessage);
       actions.chat.pushToMessageLog(newMessage);
     })
     .on("disconnect", () => {

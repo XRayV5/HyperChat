@@ -573,7 +573,6 @@
   }
 
   var MainView = function MainView(props) {
-    console.log(props);
     return h(
       "div",
       { className: "container" },
@@ -644,6 +643,21 @@
           value: props.state.chat.draft,
           oninput: function oninput(e) {
             return props.actions.chat.handleEnter(e.target.value);
+          },
+          oncreate: function oncreate(e) {
+            var newline = false;
+            e.addEventListener("keypress", function (e) {
+              if (e.keyCode === 13 && !newline) {
+                e.preventDefault();
+                props.actions.chat.sendMessage();
+              }
+            });
+            e.addEventListener("keydown", function (e) {
+              if (e.keyCode === 16) newline = true;
+            });
+            e.addEventListener("keyup", function (e) {
+              if (e.keyCode === 16) newline = false;
+            });
           }
         }),
         h(
@@ -9277,14 +9291,12 @@
       }).on("registered", function (username) {
         actions.setUsername(username);
       }).on("update message log", function (messageLog) {
-        console.log("received message log", messageLog);
         actions.chat.updateMessageLog(messageLog);
       }).on("new user joined", function (userList) {
         actions.updateUserList(userList);
       }).on("user left", function (userList) {
         actions.updateUserList(userList);
       }).on("new message", function (newMessage) {
-        console.log("new message received", newMessage);
         actions.chat.pushToMessageLog(newMessage);
       }).on("disconnect", function () {
         console.log("Socket Disconnected.");
@@ -9352,10 +9364,8 @@
       return api(actions[flag].getCredentials()).then(function (data) {
         return data;
       }).then(function (data) {
-        console.log("token", data.token);
         sessionStorage.setItem("token", data.token);
         actions.flagAuth(true);
-        // actions.setUsername(data.email);
         actions.connect();
         actions.location.go("/");
       }).catch(console.error);

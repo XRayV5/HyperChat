@@ -8,10 +8,8 @@ const handleAuth = (api, flag) => (state, actions) => {
       return data;
     })
     .then(data => {
-      console.log("token", data.token);
       sessionStorage.setItem("token", data.token);
       actions.flagAuth(true);
-      // actions.setUsername(data.email);
       actions.connect();
       actions.location.go("/");
     })
