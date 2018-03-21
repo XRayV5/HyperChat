@@ -15,6 +15,14 @@
   text-align: center;
 }
 
+.author {
+  color: blue;
+  font-size: 16px;
+}
+
+.date {
+}
+
 .logout-btn {
   margin: auto;
   display: inherit;
@@ -28,11 +36,46 @@
   overflow: auto;
   outline: none;
   resize: none;
+  font-size: 16px;
 }
 
 .send-btn {
   width: 25%;
   height: 25px;
+}
+
+.user-list-header {
+  text-align: center;
+}
+
+.user-list-log {
+  height: calc(100% - 20px);
+  background: #fff;
+  padding: 0 6px;
+  overflow-y: auto;
+  max-height: 360px;
+}
+
+.message-log {
+  height: 100%;
+  background: #fff;
+  padding: 0 6px;
+  overflow-y: auto;
+  max-height: 380px;
+}
+
+.message-wrapper {
+  margin-top: 6px;
+}
+
+.message-body {
+  font-size: 20px;
+  word-break: break-all;
+}
+
+.message-header {
+  font-size: 14px;
+  color: #616161;
 }
 
 #main {
@@ -45,24 +88,24 @@
   flex-flow: row;
 }
 
-#main > article {
+#main > .msg-log {
   margin: 4px;
   padding: 5px;
   border: 1px solid #cccc33;
   border-radius: 7pt;
-  background: #dddd88;
+  background: #ffeebb;
   -webkit-flex: 3 1 60%;
   flex: 3 1 60%;
   -webkit-order: 2;
   order: 2;
 }
 
-#main > nav {
+#main > .user-list {
   margin: 4px;
   padding: 5px;
   border: 1px solid #8888bb;
   border-radius: 7pt;
-  background: #ccccff;
+  background: #ffeebb;
   -webkit-flex: 1 6 20%;
   flex: 1 6 20%;
   -webkit-order: 1;
@@ -101,15 +144,15 @@ footer {
     flex-direction: column;
   }
 
-  #main > article,
-  #main > nav,
+  #main > .msg-log,
+  #main > .user-list,
   #main > aside {
     /* Return them to document order */
     -webkit-order: 0;
     order: 0;
   }
 
-  #main > nav,
+  #main > .user-list,
   #main > aside,
   header,
   footer {
@@ -122,5 +165,14 @@ footer {
   .send-btn {
     width: 100%;
     height: inherit;
+  }
+  .user-list-log {
+    max-height: 36px;
+  }
+  .message-log {
+    min-height: 320px;
+  }
+  .message-body {
+    font-size: 16px;
   }
 }

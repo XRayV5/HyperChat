@@ -1,6 +1,25 @@
 import { h } from "hyperapp";
 import "./style.css";
 
+const Message = ({ message, username, sentAt }) => (
+  <div className="message-wrapper">
+    <div className="message-header">
+      <span className="author">{username}</span>{" "}
+      <span className="date">{`${new Date(sentAt)
+        .toString()
+        .split(" ")
+        .slice(0, 5)
+        .join(" ")}`}</span>
+    </div>
+    <div className="message-body">{message}</div>
+  </div>
+);
+
+function updateScroll() {
+  const element = document.querySelector(".message-log");
+  if (element) element.scrollTop = element.scrollHeight;
+}
+
 const MainView = props => {
   console.log(props);
   return (
@@ -15,8 +34,17 @@ const MainView = props => {
         </div>
       </header>
       <div id="main">
-        <article>article</article>
-        <nav>{props.state.chat.userList.map(user => <div>{user}</div>)}</nav>
+        <div className="msg-log">
+          <div className="message-log" onupdate={updateScroll}>
+            {props.state.chat.messageLog.map(msg => <Message {...msg} />)}
+          </div>
+        </div>
+        <div className="user-list">
+          <div className="user-list-header">Users Online</div>
+          <div className="user-list-log">
+            {props.state.chat.userList.map(user => <div>{user}</div>)}
+          </div>
+        </div>
       </div>
       <footer>
         <textarea

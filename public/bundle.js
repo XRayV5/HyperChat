@@ -537,6 +537,41 @@
     return h(composedComp, { actions: actions, state: state });
   };
 
+  var Message = function Message(_ref) {
+    var message = _ref.message,
+        username = _ref.username,
+        sentAt = _ref.sentAt;
+    return h(
+      "div",
+      { className: "message-wrapper" },
+      h(
+        "div",
+        { className: "message-header" },
+        h(
+          "span",
+          { className: "author" },
+          username
+        ),
+        " ",
+        h(
+          "span",
+          { className: "date" },
+          "" + new Date(sentAt).toString().split(" ").slice(0, 5).join(" ")
+        )
+      ),
+      h(
+        "div",
+        { className: "message-body" },
+        message
+      )
+    );
+  };
+
+  function updateScroll() {
+    var element = document.querySelector(".message-log");
+    if (element) element.scrollTop = element.scrollHeight;
+  }
+
   var MainView = function MainView(props) {
     console.log(props);
     return h(
@@ -569,20 +604,35 @@
         "div",
         { id: "main" },
         h(
-          "article",
-          null,
-          "article"
+          "div",
+          { className: "msg-log" },
+          h(
+            "div",
+            { className: "message-log", onupdate: updateScroll },
+            props.state.chat.messageLog.map(function (msg) {
+              return h(Message, msg);
+            })
+          )
         ),
         h(
-          "nav",
-          null,
-          props.state.chat.userList.map(function (user) {
-            return h(
-              "div",
-              null,
-              user
-            );
-          })
+          "div",
+          { className: "user-list" },
+          h(
+            "div",
+            { className: "user-list-header" },
+            "Users Online"
+          ),
+          h(
+            "div",
+            { className: "user-list-log" },
+            props.state.chat.userList.map(function (user) {
+              return h(
+                "div",
+                null,
+                user
+              );
+            })
+          )
         )
       ),
       h(
@@ -9269,6 +9319,7 @@
   var sendMessage = function sendMessage() {
     return function (state, actions) {
       state.socket.emit("new message", state.draft);
+      return { draft: "" };
     };
   };
 
